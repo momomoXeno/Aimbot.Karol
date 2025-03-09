@@ -1,0 +1,410 @@
+-- Create a GUI for the exploit
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local AimbotButton = Instance.new("TextButton")
+local XrayButton = Instance.new("TextButton")
+local IncreaseHitboxButton = Instance.new("TextButton")
+local CloseButton = Instance.new("TextButton")
+local ReminderLabel = Instance.new("TextLabel")
+local AimbotEnabled = false
+local XrayEnabled = false
+local IncreaseHitboxEnabled = false
+local currentTarget = nil
+local ignoreList = {}
+local minimized = false
+local dragging = false
+local dragInput, dragStart, startPos
+
+-- Key System
+local KeyFrame = Instance.new("Frame")
+local KeyBox = Instance.new("TextBox")
+local SubmitButton = Instance.new("TextButton")
+local KeyCode = "Amode313"
+local AccessGranted = false
+
+-- Set properties for the ScreenGui
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Name = "HackerGUI"
+
+-- Set properties for the Frame
+Frame.Parent = ScreenGui
+Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+Frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Frame.Position = UDim2.new(0.5, 0, 0.5, 0) -- Center of the screen
+Frame.Size = UDim2.new(0, 300, 0, 250) -- Adjusted size
+Frame.BorderSizePixel = 2
+Frame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+Frame.Visible = false -- Initially hidden
+
+-- Set properties for the TitleLabel
+TitleLabel.Parent = Frame
+TitleLabel.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+TitleLabel.Size = UDim2.new(0.9, 0, 0.2, 0)
+TitleLabel.Position = UDim2.new(0.05, 0, 0, 0)
+TitleLabel.Font = Enum.Font.Code
+TitleLabel.Text = "AMODES AIMBOT"
+TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+TitleLabel.TextSize = 20
+TitleLabel.BorderSizePixel = 2
+TitleLabel.BorderColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Set properties for the AimbotButton
+AimbotButton.Parent = Frame
+AimbotButton.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+AimbotButton.Size = UDim2.new(0.8, 0, 0.15, 0)
+AimbotButton.Position = UDim2.new(0.1, 0, 0.25, 0)
+AimbotButton.Font = Enum.Font.Code
+AimbotButton.Text = "TOGGLE AIMBOT"
+AimbotButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+AimbotButton.TextSize = 18
+AimbotButton.BorderSizePixel = 2
+AimbotButton.BorderColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Set properties for the XrayButton
+XrayButton.Parent = Frame
+XrayButton.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+XrayButton.Size = UDim2.new(0.8, 0, 0.15, 0)
+XrayButton.Position = UDim2.new(0.1, 0, 0.45, 0)
+XrayButton.Font = Enum.Font.Code
+XrayButton.Text = "TOGGLE XRAY"
+XrayButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+XrayButton.TextSize = 18
+XrayButton.BorderSizePixel = 2
+XrayButton.BorderColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Set properties for the IncreaseHitboxButton
+IncreaseHitboxButton.Parent = Frame
+IncreaseHitboxButton.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+IncreaseHitboxButton.Size = UDim2.new(0.8, 0, 0.15, 0)
+IncreaseHitboxButton.Position = UDim2.new(0.1, 0, 0.65, 0)
+IncreaseHitboxButton.Font = Enum.Font.Code
+IncreaseHitboxButton.Text = "TOGGLE HITBOX"
+IncreaseHitboxButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+IncreaseHitboxButton.TextSize = 18
+IncreaseHitboxButton.BorderSizePixel = 2
+IncreaseHitboxButton.BorderColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Set properties for the CloseButton
+CloseButton.Parent = Frame
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+CloseButton.Size = UDim2.new(0.1, 0, 0.2, 0)
+CloseButton.Position = UDim2.new(0.9, 0, 0, 0)
+CloseButton.Font = Enum.Font.Code
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 18
+CloseButton.BorderSizePixel = 0
+
+-- Set properties for the ReminderLabel
+ReminderLabel.Parent = ScreenGui
+ReminderLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ReminderLabel.Position = UDim2.new(0.5, -150, 0.01, 0) -- Position at the top center of the screen
+ReminderLabel.Size = UDim2.new(0, 300, 0, 25)
+ReminderLabel.Font = Enum.Font.Code
+ReminderLabel.Text = '"k" toggles aimbot, "e" switches target, "x" toggles Xray, "h" toggles Increase Hitbox'
+ReminderLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+ReminderLabel.TextSize = 14
+ReminderLabel.BorderSizePixel = 0
+
+-- Set properties for the KeyFrame
+KeyFrame.Parent = ScreenGui
+KeyFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+KeyFrame.Position = UDim2.new(0.5, 0, 0.5, 0) -- Center of the screen
+KeyFrame.Size = UDim2.new(0, 300, 0, 100) -- Adjusted size
+KeyFrame.BorderSizePixel = 2
+KeyFrame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Set properties for the KeyBox
+KeyBox.Parent = KeyFrame
+KeyBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+KeyBox.Size = UDim2.new(0.8, 0, 0.3, 0)
+KeyBox.Position = UDim2.new(0.1, 0, 0.2, 0)
+KeyBox.Font = Enum.Font.Code
+KeyBox.Text = ""
+KeyBox.PlaceholderText = "ENTER KEY"
+KeyBox.TextColor3 = Color3.fromRGB(0, 255, 0)
+KeyBox.TextSize = 18
+KeyBox.BorderSizePixel = 2
+KeyBox.BorderColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Set properties for the SubmitButton
+SubmitButton.Parent = KeyFrame
+SubmitButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+SubmitButton.Size = UDim2.new(0.8, 0, 0.3, 0)
+SubmitButton.Position = UDim2.new(0.1, 0, 0.6, 0)
+SubmitButton.Font = Enum.Font.Code
+SubmitButton.Text = "SUBMIT"
+SubmitButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+SubmitButton.TextSize = 18
+SubmitButton.BorderSizePixel = 2
+SubmitButton.BorderColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Function to add fade-in effect
+local function fadeIn(guiObject, duration)
+    guiObject.Visible = true
+    for i = 0, 1, 0.1 do
+        guiObject.BackgroundTransparency = 1 - i
+        wait(duration / 10)
+    end
+    guiObject.BackgroundTransparency = 0
+end
+
+-- Function to find the nearest target's head
+local function getNearestTarget()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    local nearestTarget = nil
+    local shortestDistance = math.huge
+
+    if rootPart then
+        for _, target in ipairs(game.Players:GetPlayers()) do
+            if target ~= player and target.Team ~= player.Team and target.Character and target.Character:FindFirstChild("Head") then
+                local distance = (rootPart.Position - target.Character.Head.Position).magnitude
+                if distance < shortestDistance and not table.find(ignoreList, target) then
+                    -- Perform raycast to check for obstacles
+                    local ray = Ray.new(rootPart.Position, (target.Character.Head.Position - rootPart.Position).unit * distance)
+                    local hit, hitPosition = workspace:FindPartOnRayWithIgnoreList(ray, {character, target.Character})
+                    if hit == nil or hit:IsDescendantOf(target.Character) then
+                        shortestDistance = distance
+                        nearestTarget = target
+                    end
+                end
+            end
+        end
+    end
+
+    return nearestTarget
+end
+
+-- Function to aim at the nearest target's head smoothly
+local function aimAtTarget()
+    local player = game.Players.LocalPlayer
+    currentTarget = getNearestTarget()
+
+    if currentTarget and currentTarget.Character and currentTarget.Character:FindFirstChild("Head") then
+        local targetPos = currentTarget.Character.Head.Position
+
+        -- Make the player's camera look at the target smoothly
+        local camera = game.Workspace.CurrentCamera
+        local cameraPos = camera.CFrame.Position
+        local aimDirection = (targetPos - cameraPos).unit
+        local newCFrame = CFrame.new(cameraPos, cameraPos + aimDirection)
+
+        -- Smooth transition to new CFrame
+        camera.CFrame = newCFrame
+
+        -- Make the player's character look at the target smoothly
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local direction = (targetPos - character.HumanoidRootPart.Position).unit
+            local lookCFrame = CFrame.new(character.HumanoidRootPart.Position, character.HumanoidRootPart.Position + direction)
+            character.HumanoidRootPart.CFrame = lookCFrame
+        end
+
+        -- Check if cursor is aligned with the target's head
+        local mouse = player:GetMouse()
+        local headScreenPos, onScreen = camera:WorldToScreenPoint(targetPos)
+        if onScreen and (Vector2.new(mouse.X, mouse.Y) - Vector2.new(headScreenPos.X, headScreenPos.Y)).magnitude < 5 then
+            mouse1click() -- Simulate a mouse click
+        end
+    end
+end
+
+-- Function to increase the hitbox of enemies
+local function increaseHitbox()
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player.Team ~= game.Players.LocalPlayer.Team then
+            local character = player.Character
+            if character then
+                for _, part in ipairs(character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.Size = Vector3.new(10, 10, 10)
+                        part.Transparency = 0.5
+                        part.BrickColor = BrickColor.new("Bright red")
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Function to reset the hitbox of enemies
+local function resetHitbox()
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player.Team ~= game.Players.LocalPlayer.Team then
+            local character = player.Character
+            if character then
+                for _, part in ipairs(character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.Size = Vector3.new(1, 2, 1) -- Reset to default size, adjust as needed
+                        part.Transparency = 0
+                        part.BrickColor = BrickColor.new("Medium stone grey")
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Function to toggle the aimbot
+local function toggleAimbot()
+    AimbotEnabled = not AimbotEnabled
+    AimbotButton.Text = AimbotEnabled and "Aimbot: ON" or "Aimbot: OFF"
+    ignoreList = {}
+
+    while AimbotEnabled do
+        aimAtTarget()
+        wait(0.1) -- Adjust the wait time as needed
+    end
+end
+
+-- Function to toggle Xray
+local function toggleXray()
+    XrayEnabled = not XrayEnabled
+    XrayButton.Text = XrayEnabled and "Xray: ON" or "Xray: OFF"
+    
+    for _, part in ipairs(workspace:GetDescendants()) do
+        if part:IsA("BasePart") and not part.Parent:FindFirstChildOfClass("Humanoid") then
+            part.Transparency = XrayEnabled and 0.5 or 0
+        end
+    end
+    
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player.Team ~= game.Players.LocalPlayer.Team then
+            local character = player.Character
+            if character then
+                for _, part in ipairs(character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        local box = part:FindFirstChild("XrayBox")
+                        if XrayEnabled then
+                            if not box then
+                                box = Instance.new("BoxHandleAdornment")
+                                box.Name = "XrayBox"
+                                box.Adornee = part
+                                box.AlwaysOnTop = true
+                                box.ZIndex = 10
+                                box.Size = part.Size
+                                box.Color3 = Color3.fromRGB(0, 255, 0)
+                                box.Transparency = 0.5
+                                box.Parent = part
+                            end
+                        else
+                            if box then
+                                box:Destroy()
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Function to toggle Increase Hitbox
+local function toggleIncreaseHitbox()
+    IncreaseHitboxEnabled = not IncreaseHitboxEnabled
+    IncreaseHitboxButton.Text = IncreaseHitboxEnabled and "Increase Hitbox: ON" or "Increase Hitbox: OFF"
+    if IncreaseHitboxEnabled then
+        increaseHitbox()
+    else
+        resetHitbox()
+    end
+end
+
+-- Create dramatic hacker text effect
+local function createHackerTextEffect()
+    local symbols = {"0", "1", "Ip: 909.32.12.3", "B!tch!", "C!deleting windows Security;)C! ", "SYSTEMFAIL$$", "EXE.HACK INJECTED SUCSESSFULLY", "F in the chat :)"}
+    local function createSymbol()
+        local symbol = Instance.new("TextLabel")
+        symbol.Size = UDim2.new(0, 25, 0, 25)
+        symbol.Position = UDim2.new(math.random(), 0, 0, 0)
+        symbol.BackgroundTransparency = 1
+        symbol.TextColor3 = Color3.fromRGB(0, 255, 0)
+        symbol.TextSize = 24
+        symbol.Font = Enum.Font.Code
+        symbol.Text = symbols[math.random(1, #symbols)]
+        symbol.Parent = ScreenGui
+
+        -- Tween the symbol to make it fall from top to bottom
+        local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true)
+        local tween = game:GetService("TweenService"):Create(symbol, tweenInfo, {Position = UDim2.new(symbol.Position.X.Scale, 0, 1, 0)})
+        tween:Play()
+
+        -- Destroy the symbol after some time
+        delay(3, function()
+            symbol:Destroy()
+        end)
+    end
+
+    while not AccessGranted do
+        createSymbol()
+        wait(0.05)
+    end
+end
+
+-- Enable dragging functionality for the Frame
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+Frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        updateInput(input)
+    end
+end)
+
+-- Connect the CloseButton click event to close the GUI
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Connect the AimbotButton click event to the toggleAimbot function
+AimbotButton.MouseButton1Click:Connect(toggleAimbot)
+
+-- Connect the XrayButton click event to the toggleXray function
+XrayButton.MouseButton1Click:Connect(toggleXray)
+
+-- Connect the IncreaseHitboxButton click event to the toggleIncreaseHitbox function
+IncreaseHitboxButton.MouseButton1Click:Connect(toggleIncreaseHitbox)
+
+-- Connect the SubmitButton click event to validate the key
+SubmitButton.MouseButton1Click:Connect(function()
+    if KeyBox.Text == KeyCode then
+        AccessGranted = true
+        KeyFrame:Destroy()
+        fadeIn(Frame, 1)
+    else
+        KeyBox.Text = ""
+        KeyBox.PlaceholderText = "Invalid Key! Try Again"
+    end
+end)
+
+-- Start the dramatic hacker text effect
+spawn(createHackerTextEffect)
+
+-- Connect the key presses to their respective functions
